@@ -7,8 +7,6 @@ class Expense:
         self.category = category
     def display(self):
         print(f"{self.name}: {self.amount} ({self.category})")
-    def to_dict(self):
-        return{"name": self.name, "amount": self.amount, "category": self.category}
 
 def add_expense(expenses, name, amount, category):
     expenses.append(Expense(name, amount, category))
