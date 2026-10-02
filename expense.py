@@ -1,14 +1,12 @@
-import json
+import sqlite3
 
 class Expense:
     def __init__(self, name, amount, category):
         self.name = name
         self.amount = amount
         self.category = category
-
     def display(self):
         print(f"{self.name}: {self.amount} ({self.category})")
-
     def to_dict(self):
         return{"name": self.name, "amount": self.amount, "category": self.category}
 
@@ -25,14 +23,16 @@ def total_expenses(expenses):
         total_amount += i.amount
     print(f"Total: ${total_amount:.2f}")
 
-try:
-    expenses = []
-    with open("expense.json", "r") as file:
-        for i in json.load(file):
-            data = Expense(i["name"], i["amount"], i["category"])
-            expenses.append(data)
-except FileNotFoundError:
-    expenses = []
+conn = sqlite3.connect("expense.db")
+cursor = conn.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS expenses (id INTEGER PRIMARY KEY, name TEXT, amount REAL, category TEXT)")
+
+expenses = []
+cursor.execute("SELECT * FROM expenses")
+rows = cursor.fetchall()
+for i in rows:
+    data = Expense(i[1], i[2], i[3])
+    expenses.append(data)
 
 while True:
     print("1. Add expense")
@@ -51,16 +51,10 @@ while True:
     elif action == "3":
         total_expenses(expenses)
     elif action == "4":
-        data = []
-        for e in expenses:
-            data.append(e.to_dict())
-
-        with open("expense.json", "w") as file:
-            json.dump(data, file)
+        for i in expenses:
+            cursor.execute("INSERT INTO expenses (name, amount, category) VALUES (?, ?, ?)", (i.name, i.amount, i.category))
+        conn.commit()
+        conn.close()
         break
     else:
         print("Error")
-
-
-
-
